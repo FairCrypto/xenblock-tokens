@@ -18,18 +18,23 @@ contract VoteManager is Initializable, OwnableUpgradeable {
 
     uint8 public votePercentage;
 
-    mapping(uint256 => bool) public mintedByHashId; // maybe this should be in the HashRecord?
+    // deprecated
+    mapping(uint256 => bool) public mintedByHashId;
     mapping(uint256 => mapping(uint256 => bool))
         public votesByHashIdAndValidatorId;
-
-    // deprecated
     mapping(uint256 => mapping(uint8 => uint16))
         public votesByHashIdAndCurrencyType;
+    //
 
     mapping(uint256 => mapping(uint256 => uint16))
     public newVotesByHashIdAndCurrencyType;
 
     TokenRegistry public tokenRegistry;
+
+    mapping(uint256 => mapping(uint256 => bool)) public mintedByHashIdAndCurrencyType;
+
+    mapping(uint256 => mapping(uint256 => mapping(uint256 => bool)))
+    public votesByHashIdAndValidatorIdAndCurrencyType;
 
     event MintToken(
         uint256 indexed hashId,
@@ -105,9 +110,10 @@ contract VoteManager is Initializable, OwnableUpgradeable {
 
     function _hasAlreadyVoted(
         uint256 _hashId,
-        uint256 validatorId
+        uint256 validatorId,
+        uint256 _currencyType
     ) internal view returns (bool) {
-        return votesByHashIdAndValidatorId[_hashId][validatorId];
+        return votesByHashIdAndValidatorIdAndCurrencyType[_hashId][validatorId][_currencyType];
     }
 
     function _mintToken(uint256 _hashId, uint256 _currencyType) internal {
@@ -118,7 +124,7 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         address account = blockStorage.addressesByHashId(_hashId);
         token.mint(account, initalAmountPerHash);
 
-        mintedByHashId[_hashId] = true;
+        mintedByHashIdAndCurrencyType[_hashId][_currencyType] = true;
         emit MintToken(_hashId, account, _currencyType);
     }
 
@@ -133,20 +139,20 @@ contract VoteManager is Initializable, OwnableUpgradeable {
     }
 
     function _vote(uint256 _hashId, uint256 _currencyType) internal {
-        require(mintedByHashId[_hashId] == false, "Already minted");
+        require(mintedByHashIdAndCurrencyType[_hashId][_currencyType] == false, "Already minted");
         uint256 validatorId = sfcLib.getValidatorID(msg.sender);
         uint256 _validatorCount = validatorCount();
         uint256 requiredVotes = _requiredNumOfValidators(_validatorCount);
 
         require(validatorId > 0, "Not a validator");
-        require(!_hasAlreadyVoted(_hashId, validatorId), "Already voted");
+        require(!_hasAlreadyVoted(_hashId, validatorId, _currencyType), "Already voted");
         require(
             shouldVote(validatorId, _hashId, _validatorCount),
             "Not a selected validator"
         );
 
         // Cast the vote
-        votesByHashIdAndValidatorId[_hashId][validatorId] = true;
+        votesByHashIdAndValidatorIdAndCurrencyType[_hashId][validatorId][_currencyType] = true;
         newVotesByHashIdAndCurrencyType[_hashId][_currencyType] += 1;
 
         // Mint the token if the vote threshold is reached
