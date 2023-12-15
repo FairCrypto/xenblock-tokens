@@ -42,6 +42,13 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         uint256 indexed currencyType
     );
 
+    event VoteToken(
+        uint256 indexed hashId,
+        uint256 indexed validatorId,
+        uint256 indexed currencyType,
+        uint16 votes
+    );
+
     struct Payload {
         uint256 hashId;
         uint256 currencyType;
@@ -80,7 +87,7 @@ contract VoteManager is Initializable, OwnableUpgradeable {
 
     function updateVotePercentage(uint8 _votePercentage) external onlyOwner {
         require(
-            _votePercentage >= 100 && _votePercentage <= 10000,
+            _votePercentage >= 1 && _votePercentage <= 100,
             "Percentage must be between 1 and 100."
         );
         votePercentage = _votePercentage;
@@ -153,13 +160,11 @@ contract VoteManager is Initializable, OwnableUpgradeable {
 
         // Cast the vote
         votesByHashIdAndValidatorIdAndCurrencyType[_hashId][validatorId][_currencyType] = true;
-        newVotesByHashIdAndCurrencyType[_hashId][_currencyType] += 1;
+        uint16 votes = newVotesByHashIdAndCurrencyType[_hashId][_currencyType] += 1;
+        emit VoteToken(_hashId, validatorId, _currencyType, votes);
 
         // Mint the token if the vote threshold is reached
-        if (
-            newVotesByHashIdAndCurrencyType[_hashId][_currencyType] >=
-            requiredVotes
-        ) {
+        if (votes >= requiredVotes) {
             _mintToken(_hashId, _currencyType);
         }
     }
