@@ -43,7 +43,7 @@ contract TokenRegistry is Initializable, OwnableUpgradeable {
         tokenIdBySymbol[symbol] = tokenIdCounter;
     }
 
-    function getToken(uint256 _id) public view returns(Token memory) {
+    function getToken(uint256 _id) public view returns (Token memory) {
         return tokensById[_id];
     }
 }

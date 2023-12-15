@@ -27,14 +27,20 @@ contract VoteManager is Initializable, OwnableUpgradeable {
     //
 
     mapping(uint256 => mapping(uint256 => uint16))
-    public newVotesByHashIdAndCurrencyType;
+        public newVotesByHashIdAndCurrencyType;
 
     TokenRegistry public tokenRegistry;
 
-    mapping(uint256 => mapping(uint256 => bool)) public mintedByHashIdAndCurrencyType;
+    // deprecated
+    mapping(uint256 => mapping(uint256 => bool))
+    public mintedByHashIdAndCurrencyType;
+    //
 
     mapping(uint256 => mapping(uint256 => mapping(uint256 => bool)))
-    public votesByHashIdAndValidatorIdAndCurrencyType;
+        public votesByHashIdAndValidatorIdAndCurrencyType;
+
+    mapping(address => mapping(uint256 => mapping(uint256 => bool)))
+        public bsMintedByHashIdAndCurrencyType;
 
     event MintToken(
         uint256 indexed hashId,
@@ -81,7 +87,9 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         sfcLib = SFCLib(_sfcLibAddress);
     }
 
-    function updateTokenRegistryAddress(address _tokenRegistryAddress) external onlyOwner {
+    function updateTokenRegistryAddress(
+        address _tokenRegistryAddress
+    ) external onlyOwner {
         tokenRegistry = TokenRegistry(_tokenRegistryAddress);
     }
 
@@ -101,7 +109,8 @@ contract VoteManager is Initializable, OwnableUpgradeable {
     function _requiredNumOfValidators(
         uint256 _validatorCount
     ) internal view returns (uint256) {
-        uint256 requiredVotes = (_validatorCount * votePercentage * 100) / 10000;
+        uint256 requiredVotes = (_validatorCount * votePercentage * 100) /
+            10000;
         if (requiredVotes == 0) {
             return 1;
         }
@@ -115,23 +124,36 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         return sfcLib.getEpochValidatorIDs(epoch).length;
     }
 
+    function _hasBeenMinted(uint256 _hashId, uint256 _currencyType) internal returns (bool) {
+        return bsMintedByHashIdAndCurrencyType[address(blockStorage)][_hashId][_currencyType];
+    }
+
+    function _markAsMinted(uint256 _hashId, uint256 _currencyType) internal {
+        bsMintedByHashIdAndCurrencyType[address(blockStorage)][_hashId][_currencyType] = true;
+    }
+
     function _hasAlreadyVoted(
         uint256 _hashId,
         uint256 validatorId,
         uint256 _currencyType
     ) internal view returns (bool) {
-        return votesByHashIdAndValidatorIdAndCurrencyType[_hashId][validatorId][_currencyType];
+        return
+            votesByHashIdAndValidatorIdAndCurrencyType[_hashId][validatorId][
+                _currencyType
+            ];
     }
 
     function _mintToken(uint256 _hashId, uint256 _currencyType) internal {
         address addr = tokenRegistry.getToken(_currencyType).addr;
-        uint256 initalAmountPerHash = tokenRegistry.getToken(_currencyType).initalAmountPerHash;
+        uint256 initalAmountPerHash = tokenRegistry
+            .getToken(_currencyType)
+            .initalAmountPerHash;
         VoterToken token = VoterToken(addr);
 
         address account = blockStorage.addressesByHashId(_hashId);
         token.mint(account, initalAmountPerHash);
 
-        mintedByHashIdAndCurrencyType[_hashId][_currencyType] = true;
+        _markAsMinted(_hashId, _currencyType);
         emit MintToken(_hashId, account, _currencyType);
     }
 
@@ -145,23 +167,40 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         return 0 < _validatorId && _validatorId <= 3;
     }
 
-    function _vote(uint256 _hashId, uint256 _currencyType) internal {
-        require(mintedByHashIdAndCurrencyType[_hashId][_currencyType] == false, "Already minted");
+    function _vote(
+        uint256 _hashId,
+        uint256 _currencyType,
+        uint256 validatorId
+    ) internal returns (uint16) {
+        // Cast the vote
+        votesByHashIdAndValidatorIdAndCurrencyType[_hashId][validatorId][
+            _currencyType
+        ] = true;
+        uint16 votes = newVotesByHashIdAndCurrencyType[_hashId][
+            _currencyType
+        ] += 1;
+        emit VoteToken(_hashId, validatorId, _currencyType, votes);
+
+        return votes;
+    }
+
+    function vote(uint256 _hashId, uint256 _currencyType) external {
+        require(!_hasBeenMinted(_hashId, _currencyType), "Already minted");
         uint256 validatorId = sfcLib.getValidatorID(msg.sender);
         uint256 _validatorCount = validatorCount();
         uint256 requiredVotes = _requiredNumOfValidators(_validatorCount);
 
         require(validatorId > 0, "Not a validator");
-        require(!_hasAlreadyVoted(_hashId, validatorId, _currencyType), "Already voted");
+        require(
+            !_hasAlreadyVoted(_hashId, validatorId, _currencyType),
+            "Already voted"
+        );
         require(
             shouldVote(validatorId, _hashId, _validatorCount),
             "Not a selected validator"
         );
 
-        // Cast the vote
-        votesByHashIdAndValidatorIdAndCurrencyType[_hashId][validatorId][_currencyType] = true;
-        uint16 votes = newVotesByHashIdAndCurrencyType[_hashId][_currencyType] += 1;
-        emit VoteToken(_hashId, validatorId, _currencyType, votes);
+        uint16 votes = _vote(_hashId, _currencyType, validatorId);
 
         // Mint the token if the vote threshold is reached
         if (votes >= requiredVotes) {
@@ -169,15 +208,34 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         }
     }
 
-    function vote(uint256 _hashId, uint256 _currencyType) external {
-        _vote(_hashId, _currencyType);
-    }
-
     function voteBatch(Payload[] memory payload) external {
-        require(payload.length > 0, "Invalid input");
+        uint256 validatorId = sfcLib.getValidatorID(msg.sender);
+        uint256 _validatorCount = validatorCount();
+        uint256 requiredVotes = _requiredNumOfValidators(_validatorCount);
+        require(validatorId > 0, "Not a validator");
+
         for (uint256 i = 0; i < payload.length; i++) {
-            // TODO: error handling
-            _vote(payload[i].hashId, payload[i].currencyType);
+            uint256 hashId = payload[i].hashId;
+            uint256 currencyType = payload[i].currencyType;
+
+            if (_hasBeenMinted(hashId, currencyType)) {
+                continue;
+            }
+
+            if (_hasAlreadyVoted(hashId, validatorId, currencyType)) {
+                continue;
+            }
+
+            if (!shouldVote(validatorId, hashId, currencyType)) {
+                continue;
+            }
+
+            uint16 votes = _vote(hashId, currencyType, validatorId);
+
+            // Mint the token if the vote threshold is reached
+            if (votes >= requiredVotes) {
+                _mintToken(hashId, currencyType);
+            }
         }
     }
 }
