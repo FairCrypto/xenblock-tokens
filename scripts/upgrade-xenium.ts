@@ -1,4 +1,4 @@
-import {ethers, network, upgrades} from "hardhat";
+import { ethers, network, upgrades } from "hardhat";
 import { config } from "../hardhat.config";
 
 require("dotenv").config();
@@ -17,7 +17,7 @@ async function main() {
   if (config.etherscan.apiKey[network.name]) {
     await hre.run("verify:verify", {
       address: xeniumAddress,
-    })
+    });
   }
 }
 

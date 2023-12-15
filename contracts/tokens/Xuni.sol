@@ -16,6 +16,9 @@ contract Xuni is
 {
     address public voteManager;
 
+    // deprecated
+    uint256 public hashId;
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();

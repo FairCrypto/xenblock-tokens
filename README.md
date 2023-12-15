@@ -23,7 +23,7 @@ npx hardhat run scripts/create-all.ts --network x1-testnet
 
 ## Verify Contracts
 
-Verify should be automatically done after the contracts are deployed, 
+Verify should be automatically done after the contracts are deployed,
 but if you need to verify them manually, you can use the following commands.
 
 ```shell
