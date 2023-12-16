@@ -16,12 +16,6 @@ async function main() {
   const tokenRegistryAddress = await tokenRegistry.getAddress();
 
   console.log("TokenRegistry deployed to:", tokenRegistryAddress);
-
-  if (config.etherscan.apiKey[network.name]) {
-    await hre.run("verify:verify", {
-      address: tokenRegistryAddress,
-    });
-  }
 }
 
 // We recommend this pattern to be able to use async/await everywhere

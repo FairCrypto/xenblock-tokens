@@ -11,7 +11,7 @@ export PRIVATE_KEY=<private key>
 
 ## Deploy Contracts
 
-The inital deployment of the contracts is done using the `create-*` scripts. The `upgrade-*` scripts are used to upgrade the contracts.
+The initial deployment of the contracts is done using the `create-*` scripts. The `upgrade-*` scripts are used to upgrade the contracts.
 
 For convenience, the `create-all` script will deploy and verify all contracts.
 
@@ -22,9 +22,6 @@ npx hardhat run scripts/create-all.ts --network x1-testnet
 ```
 
 ## Verify Contracts
-
-Verify should be automatically done after the contracts are deployed,
-but if you need to verify them manually, you can use the following commands.
 
 ```shell
 source .env

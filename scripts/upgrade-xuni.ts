@@ -13,12 +13,6 @@ async function main() {
   await xuni.waitForDeployment();
   const xuniAddress = await xuni.getAddress();
   console.log("Xuni deployed to:", xuniAddress);
-
-  if (config.etherscan.apiKey[network.name]) {
-    await hre.run("verify:verify", {
-      address: xuniAddress,
-    });
-  }
 }
 
 // We recommend this pattern to be able to use async/await everywhere

@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./TokenRegistry.sol";
 import "./interfaces/SFCLib.sol";
 import "./interfaces/BlockStorage.sol";
-import "./interfaces/VoterToken.sol";
+import "./abstracts/VoterToken.sol";
 
 contract ERC {
     function mint(address to, uint256 amount) public {}
@@ -15,32 +15,23 @@ contract ERC {
 contract VoteManager is Initializable, OwnableUpgradeable {
     SFCLib public sfcLib;
     BlockStorage public blockStorage;
+    TokenRegistry public tokenRegistry;
+
+    struct Payload {
+        uint256 hashId;
+        uint256 currencyType;
+    }
 
     uint8 public votePercentage;
 
-    // deprecated
-    mapping(uint256 => bool) public mintedByHashId;
-    mapping(uint256 => mapping(uint256 => bool))
-        public votesByHashIdAndValidatorId;
-    mapping(uint256 => mapping(uint8 => uint16))
-        public votesByHashIdAndCurrencyType;
-    //
-
     mapping(uint256 => mapping(uint256 => uint16))
-        public newVotesByHashIdAndCurrencyType;
-
-    TokenRegistry public tokenRegistry;
-
-    // deprecated
-    mapping(uint256 => mapping(uint256 => bool))
-    public mintedByHashIdAndCurrencyType;
-    //
+        public votesByHashIdAndCurrencyType;
 
     mapping(uint256 => mapping(uint256 => mapping(uint256 => bool)))
         public votesByHashIdAndValidatorIdAndCurrencyType;
 
-    mapping(address => mapping(uint256 => mapping(uint256 => bool)))
-        public bsMintedByHashIdAndCurrencyType;
+    mapping(uint256 => mapping(uint256 => bool))
+        public mintedByHashIdAndCurrencyType;
 
     event MintToken(
         uint256 indexed hashId,
@@ -54,11 +45,6 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         uint256 indexed currencyType,
         uint16 votes
     );
-
-    struct Payload {
-        uint256 hashId;
-        uint256 currencyType;
-    }
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -124,12 +110,15 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         return sfcLib.getEpochValidatorIDs(epoch).length;
     }
 
-    function _hasBeenMinted(uint256 _hashId, uint256 _currencyType) internal returns (bool) {
-        return bsMintedByHashIdAndCurrencyType[address(blockStorage)][_hashId][_currencyType];
+    function _hasBeenMinted(
+        uint256 _hashId,
+        uint256 _currencyType
+    ) internal view returns (bool) {
+        return mintedByHashIdAndCurrencyType[_hashId][_currencyType];
     }
 
     function _markAsMinted(uint256 _hashId, uint256 _currencyType) internal {
-        bsMintedByHashIdAndCurrencyType[address(blockStorage)][_hashId][_currencyType] = true;
+        mintedByHashIdAndCurrencyType[_hashId][_currencyType] = true;
     }
 
     function _hasAlreadyVoted(
@@ -145,13 +134,13 @@ contract VoteManager is Initializable, OwnableUpgradeable {
 
     function _mintToken(uint256 _hashId, uint256 _currencyType) internal {
         address addr = tokenRegistry.getToken(_currencyType).addr;
-        uint256 initalAmountPerHash = tokenRegistry
+        uint256 amountPerHash = tokenRegistry
             .getToken(_currencyType)
-            .initalAmountPerHash;
+            .amountPerHash;
         VoterToken token = VoterToken(addr);
 
         address account = blockStorage.addressesByHashId(_hashId);
-        token.mint(account, initalAmountPerHash);
+        token.mint(account, amountPerHash);
 
         _markAsMinted(_hashId, _currencyType);
         emit MintToken(_hashId, account, _currencyType);
@@ -176,7 +165,7 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         votesByHashIdAndValidatorIdAndCurrencyType[_hashId][validatorId][
             _currencyType
         ] = true;
-        uint16 votes = newVotesByHashIdAndCurrencyType[_hashId][
+        uint16 votes = votesByHashIdAndCurrencyType[_hashId][
             _currencyType
         ] += 1;
         emit VoteToken(_hashId, validatorId, _currencyType, votes);

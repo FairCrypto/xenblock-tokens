@@ -1,49 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "../abstracts/VoterToken.sol";
 
-contract SuperBlock is
-    Initializable,
-    ERC20Upgradeable,
-    ERC20BurnableUpgradeable,
-    OwnableUpgradeable,
-    ERC20PermitUpgradeable
+contract SuperBlock is VoterToken
 {
-    address public voteManager;
-
-    // deprecated
-    uint256 public hashId;
-
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
     function initialize(
         address initialOwner,
-        address initalVoteManager
+        address initialVoteManager,
+        address initialTokenRegistry
     ) public initializer {
         __ERC20_init("SuperBlock", "XBLK");
         __ERC20Burnable_init();
         __Ownable_init(initialOwner);
         __ERC20Permit_init("SuperBlock");
-        voteManager = initalVoteManager;
-    }
-
-    modifier onlyVoteManager() {
-        require(
-            msg.sender == voteManager,
-            "Only vote manager can call this function."
-        );
-        _;
-    }
-
-    function mint(address to, uint256 amount) public onlyVoteManager {
-        _mint(to, amount);
+        voteManagerAddress = initialVoteManager;
+        tokenRegistryAddress = initialTokenRegistry;
     }
 }

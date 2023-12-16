@@ -3,6 +3,11 @@ import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-verify";
 import "@openzeppelin/hardhat-upgrades";
 
+const x1Accounts = [];
+if (process.env.PRIVATE_KEY) {
+  x1Accounts.push(process.env.PRIVATE_KEY);
+}
+
 export const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.20",
@@ -17,7 +22,8 @@ export const config: HardhatUserConfig = {
   networks: {
     "x1-testnet": {
       url: "https://x1-testnet.xen.network",
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: x1Accounts,
+      gasMultiplier: 1.5,
     },
   },
   etherscan: {

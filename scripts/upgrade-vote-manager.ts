@@ -16,12 +16,6 @@ async function main() {
   await voteManager.waitForDeployment();
   const voteManagerAddress = await voteManager.getAddress();
   console.log("VoteManager deployed to:", voteManagerAddress);
-
-  if (config.etherscan.apiKey[network.name]) {
-    await hre.run("verify:verify", {
-      address: voteManagerAddress,
-    });
-  }
 }
 
 // We recommend this pattern to be able to use async/await everywhere

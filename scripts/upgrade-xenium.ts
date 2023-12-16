@@ -13,12 +13,6 @@ async function main() {
   await xenium.waitForDeployment();
   const xeniumAddress = await xenium.getAddress();
   console.log("Xenium deployed to:", xeniumAddress);
-
-  if (config.etherscan.apiKey[network.name]) {
-    await hre.run("verify:verify", {
-      address: xeniumAddress,
-    });
-  }
 }
 
 // We recommend this pattern to be able to use async/await everywhere

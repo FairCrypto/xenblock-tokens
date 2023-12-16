@@ -16,12 +16,6 @@ async function main() {
   await superBlock.waitForDeployment();
   const superBlockAddress = await superBlock.getAddress();
   console.log("SuperBlock deployed to:", superBlockAddress);
-
-  if (config.etherscan.apiKey[network.name]) {
-    await hre.run("verify:verify", {
-      address: superBlockAddress,
-    });
-  }
 }
 
 // We recommend this pattern to be able to use async/await everywhere

@@ -1,4 +1,3 @@
-import { ethers, upgrades } from "hardhat";
 import { main as xuni } from "./create-xuni";
 import { main as xenium } from "./create-xenium";
 import { main as superBlock } from "./create-super-block";
@@ -11,6 +10,7 @@ const BLOCK_STORAGE_ADDRESS = process.env.BLOCK_STORAGE_ADDRESS;
 const SFC_LIB_ADDRESS = process.env.SFC_LIB_ADDRESS;
 const PERCENTAGE = process.env.PERCENTAGE;
 
+
 export async function main() {
   const vm = await voteManager(
     BLOCK_STORAGE_ADDRESS,
@@ -19,17 +19,34 @@ export async function main() {
   );
   const vmAddr = await vm.getAddress();
 
-  const xnm = await xenium(vmAddr);
-  const xu = await xuni(vmAddr);
-  const sb = await superBlock(vmAddr);
+  const tr = await tokenRegistry();
+  const trAddr = await tr.getAddress();
 
-  const tr = await tokenRegistry(
-    await xnm.getAddress(),
-    await xu.getAddress(),
-    await sb.getAddress(),
+  const xnm = await xenium(vmAddr, trAddr);
+  const xu = await xuni(vmAddr, trAddr);
+  const sb = await superBlock(vmAddr, trAddr);
+
+  tr.registerToken(
+    "Xenium",
+    "XMN",
+    10000000000000000000n,
+    await xnm.getAddress()
   );
 
-  const trAddr = await tr.getAddress();
+  tr.registerToken(
+    "Xuni",
+    "XUNI",
+    1000000000000000000n,
+    await xu.getAddress()
+  );
+
+  tr.registerToken(
+    "SuperBlock",
+    "XBLK",
+    1000000000000000000n,
+    await sb.getAddress()
+  );
+
   await vm.updateTokenRegistryAddress(trAddr);
 
   console.log();
