@@ -20,6 +20,7 @@ contract VoteManager is Initializable, OwnableUpgradeable {
     struct Payload {
         uint256 hashId;
         uint256 currencyType;
+        uint256 mintedBlockNumber;
     }
 
     uint8 public votePercentage;
@@ -147,10 +148,19 @@ contract VoteManager is Initializable, OwnableUpgradeable {
     }
 
     function shouldVote(
+        uint256 _mintedBlockNumber,
+        uint256 _validatorId,
+        uint256 _hashId
+    ) public view returns (bool) {
+        return _shouldVote(_mintedBlockNumber, _validatorId, _hashId, validatorCount());
+    }
+
+    function _shouldVote(
+        uint256 _mintedBlockNumber,
         uint256 _validatorId,
         uint256 _hashId,
         uint256 _validatorCount
-    ) public pure returns (bool) {
+    ) internal pure returns (bool) {
         // TODO: implement random selection with block number as seed
         // for now we just select Faircrypto's validators. 1, 2, & 3
         return 0 < _validatorId && _validatorId <= 3;
@@ -173,7 +183,7 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         return votes;
     }
 
-    function vote(uint256 _hashId, uint256 _currencyType) external {
+    function vote(uint256 mintedBlockNumber, uint256 _hashId, uint256 _currencyType) external {
         require(!_hasBeenMinted(_hashId, _currencyType), "Already minted");
         uint256 validatorId = sfcLib.getValidatorID(msg.sender);
         uint256 _validatorCount = validatorCount();
@@ -185,7 +195,7 @@ contract VoteManager is Initializable, OwnableUpgradeable {
             "Already voted"
         );
         require(
-            shouldVote(validatorId, _hashId, _validatorCount),
+            _shouldVote(mintedBlockNumber, validatorId, _hashId, _validatorCount),
             "Not a selected validator"
         );
 
@@ -206,6 +216,7 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         for (uint256 i = 0; i < payload.length; i++) {
             uint256 hashId = payload[i].hashId;
             uint256 currencyType = payload[i].currencyType;
+            uint256 mintedBlockNumber = payload[i].mintedBlockNumber;
 
             if (_hasBeenMinted(hashId, currencyType)) {
                 continue;
@@ -215,7 +226,7 @@ contract VoteManager is Initializable, OwnableUpgradeable {
                 continue;
             }
 
-            if (!shouldVote(validatorId, hashId, currencyType)) {
+            if (!_shouldVote(mintedBlockNumber, validatorId, hashId, _validatorCount)) {
                 continue;
             }
 
