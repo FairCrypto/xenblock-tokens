@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-contract SFCLib {
+contract SFC {
     mapping(address => uint256) public getValidatorID;
     mapping(uint256 => EpochSnapshot) public getEpochSnapshot;
     uint256 public currentSealedEpoch;

@@ -3,13 +3,15 @@ import { config } from "../hardhat.config";
 
 require("dotenv").config();
 
-const XUNI_ADDRESS = process.env.XUNI_ADDRESS;
+const XUNI_ADDRESS = process.env.XUNI_ADDRESS || "";
 
 async function main() {
   const [deployerAccount] = await ethers.getSigners();
 
   const Xuni = await ethers.getContractFactory("Xuni");
-  const xuni = await upgrades.upgradeProxy(XUNI_ADDRESS, Xuni);
+  const xuni = await upgrades.upgradeProxy(XUNI_ADDRESS, Xuni, {
+    call: "incrementVersion"
+  });
   await xuni.waitForDeployment();
   const xuniAddress = await xuni.getAddress();
   console.log("Xuni deployed to:", xuniAddress);

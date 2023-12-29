@@ -3,13 +3,15 @@ import { config } from "../hardhat.config";
 
 require("dotenv").config();
 
-const XENIUM_ADDRESS = process.env.XENIUM_ADDRESS;
+const XENIUM_ADDRESS = process.env.XENIUM_ADDRESS || "";
 
 async function main() {
   const [deployerAccount] = await ethers.getSigners();
 
   const Xenium = await ethers.getContractFactory("Xenium");
-  const xenium = await upgrades.upgradeProxy(XENIUM_ADDRESS, Xenium);
+  const xenium = await upgrades.upgradeProxy(XENIUM_ADDRESS, Xenium, {
+    call: "incrementVersion"
+  });
   await xenium.waitForDeployment();
   const xeniumAddress = await xenium.getAddress();
   console.log("Xenium deployed to:", xeniumAddress);

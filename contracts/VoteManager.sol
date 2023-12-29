@@ -3,27 +3,33 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./TokenRegistry.sol";
-import "./interfaces/SFCLib.sol";
+import "./interfaces/SFC.sol";
 import "./interfaces/BlockStorage.sol";
 import "./abstracts/VoterToken.sol";
+import "hardhat/console.sol";
 
-contract ERC {
-    function mint(address to, uint256 amount) public {}
-}
+error VersionMismatch();
+error NotAValidator();
 
 contract VoteManager is Initializable, OwnableUpgradeable {
-    SFCLib public sfcLib;
+    SFC public sfc;
     BlockStorage public blockStorage;
     TokenRegistry public tokenRegistry;
 
-    struct Payload {
+    struct VotePayload {
         uint256 hashId;
         uint256 currencyType;
         uint256 mintedBlockNumber;
+        uint16 version;
     }
 
+    // The percentage of validators that must vote for a token to be minted
     uint8 public votePercentage;
+
+    // The percentage of extra votes asked for to cover any missing validator votes
+    uint8 public voteBufferPercent;
 
     mapping(uint256 => mapping(uint256 => uint16))
         public votesByHashIdAndCurrencyType;
@@ -56,47 +62,73 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         address initialOwner,
         address initialSfcAddress,
         address initialBlockStorageAddress,
-        uint8 initialVotePercentage
+        uint8 initialVotePercentage,
+        uint8 initialVoteBufferPercent
     ) public initializer {
         __Ownable_init(initialOwner);
         blockStorage = BlockStorage(initialBlockStorageAddress);
-        sfcLib = SFCLib(initialSfcAddress);
+        sfc = SFC(initialSfcAddress);
         votePercentage = initialVotePercentage;
+        voteBufferPercent = initialVoteBufferPercent;
     }
 
     function updateBlockStorageAddress(
-        address _blockStorageAddress
+        address blockStorageAddress
     ) external onlyOwner {
-        blockStorage = BlockStorage(_blockStorageAddress);
+        blockStorage = BlockStorage(blockStorageAddress);
     }
 
-    function updateSfcLibAddress(address _sfcLibAddress) external onlyOwner {
-        sfcLib = SFCLib(_sfcLibAddress);
+    function updateSfcAddress(address sfcAddress) external onlyOwner {
+        sfc = SFC(sfcAddress);
     }
 
     function updateTokenRegistryAddress(
-        address _tokenRegistryAddress
+        address tokenRegistryAddress_
     ) external onlyOwner {
-        tokenRegistry = TokenRegistry(_tokenRegistryAddress);
+        tokenRegistry = TokenRegistry(tokenRegistryAddress_);
     }
 
-    function updateVotePercentage(uint8 _votePercentage) external onlyOwner {
+    function updateVotePercentage(uint8 votePercentage_) external onlyOwner {
         require(
-            _votePercentage >= 1 && _votePercentage <= 100,
+            votePercentage_ >= 1 && votePercentage_ <= 100,
             "Percentage must be between 1 and 100."
         );
-        votePercentage = _votePercentage;
+        votePercentage = votePercentage_;
+    }
+
+    function updateVoteBufferPercentage(
+        uint8 voteBufferPercent_
+    ) external onlyOwner {
+        require(
+            voteBufferPercent_ >= 1 && voteBufferPercent_ <= 100,
+            "Percentage must be between 1 and 100."
+        );
+        voteBufferPercent = voteBufferPercent_;
     }
 
     function requiredNumOfValidators() public view returns (uint256) {
-        uint256 _validatorCount = validatorCount();
-        return _requiredNumOfValidators(_validatorCount);
+        uint256 validatorCount_ = validatorCount();
+        return _requiredNumOfValidators(validatorCount_);
+    }
+
+    function requiredNumOfVotes() public view returns (uint256) {
+        uint256 validatorCount_ = validatorCount();
+        return _requiredNumOfVotes(validatorCount_);
     }
 
     function _requiredNumOfValidators(
-        uint256 _validatorCount
+        uint256 validatorCount_
     ) internal view returns (uint256) {
-        uint256 requiredVotes = (_validatorCount * votePercentage * 100) /
+        uint256 requiredVotes = _requiredNumOfVotes(validatorCount_);
+        uint256 requiredValidators = requiredVotes +
+            ((requiredVotes * voteBufferPercent * 100) / 10000);
+        return Math.min(validatorCount_, requiredValidators);
+    }
+
+    function _requiredNumOfVotes(
+        uint256 validatorCount_
+    ) internal view returns (uint256) {
+        uint256 requiredVotes = (validatorCount_ * votePercentage * 100) /
             10000;
         if (requiredVotes == 0) {
             return 1;
@@ -107,116 +139,105 @@ contract VoteManager is Initializable, OwnableUpgradeable {
     function validatorCount() public view returns (uint256) {
         // TODO: add a more efficient validator count to the SFC contract
         // for now we need to count the validators in the current epoch
-        uint256 epoch = sfcLib.currentSealedEpoch();
-        return sfcLib.getEpochValidatorIDs(epoch).length;
+        uint256 epoch = sfc.currentSealedEpoch();
+        return sfc.getEpochValidatorIDs(epoch).length;
     }
 
     function _hasBeenMinted(
-        uint256 _hashId,
-        uint256 _currencyType
+        uint256 hashId,
+        uint256 currencyType
     ) internal view returns (bool) {
-        return mintedByHashIdAndCurrencyType[_hashId][_currencyType];
+        return mintedByHashIdAndCurrencyType[hashId][currencyType];
     }
 
-    function _markAsMinted(uint256 _hashId, uint256 _currencyType) internal {
-        mintedByHashIdAndCurrencyType[_hashId][_currencyType] = true;
+    function _markAsMinted(uint256 hashId, uint256 currencyType) internal {
+        mintedByHashIdAndCurrencyType[hashId][currencyType] = true;
     }
 
     function _hasAlreadyVoted(
-        uint256 _hashId,
+        uint256 hashId,
         uint256 validatorId,
-        uint256 _currencyType
+        uint256 currencyType
     ) internal view returns (bool) {
         return
-            votesByHashIdAndValidatorIdAndCurrencyType[_hashId][validatorId][
-                _currencyType
+            votesByHashIdAndValidatorIdAndCurrencyType[hashId][validatorId][
+                currencyType
             ];
     }
 
-    function _mintToken(uint256 _hashId, uint256 _currencyType) internal {
-        address addr = tokenRegistry.getToken(_currencyType).addr;
-        uint256 amountPerHash = tokenRegistry
-            .getToken(_currencyType)
-            .amountPerHash;
-        VoterToken token = VoterToken(addr);
+    function _mintToken(uint256 hashId, uint256 currencyType) internal {
+        address account = blockStorage.addressesByHashId(hashId);
 
-        address account = blockStorage.addressesByHashId(_hashId);
-        token.mint(account, amountPerHash);
+        VoterToken token = tokenRegistry.getToken(currencyType);
+        token.mint(account, token.amountPerHash());
 
-        _markAsMinted(_hashId, _currencyType);
-        emit MintToken(_hashId, account, _currencyType);
+        _markAsMinted(hashId, currencyType);
+        emit MintToken(hashId, account, currencyType);
     }
 
     function shouldVote(
-        uint256 _mintedBlockNumber,
-        uint256 _validatorId,
-        uint256 _hashId
+        uint256 mintedBlockNumber,
+        uint256 validatorId,
+        uint256 hashId
     ) public view returns (bool) {
-        return _shouldVote(_mintedBlockNumber, _validatorId, _hashId, validatorCount());
+        return
+            _shouldVote(
+                mintedBlockNumber,
+                validatorId,
+                hashId,
+                validatorCount()
+            );
     }
 
+    // TODO: implement random selection with block number as seed
+    // for now we just select Faircrypto's validators. 1, 2, & 3
     function _shouldVote(
-        uint256 _mintedBlockNumber,
-        uint256 _validatorId,
-        uint256 _hashId,
-        uint256 _validatorCount
+        uint256 /*mintedBlockNumber*/,
+        uint256 validatorId,
+        uint256 /*hashId*/,
+        uint256 /*validatorCount_*/
     ) internal pure returns (bool) {
-        // TODO: implement random selection with block number as seed
-        // for now we just select Faircrypto's validators. 1, 2, & 3
-        return 0 < _validatorId && _validatorId <= 3;
+        return 0 < validatorId && validatorId <= 3;
     }
 
     function _vote(
-        uint256 _hashId,
-        uint256 _currencyType,
+        uint256 hashId,
+        uint256 currencyType,
         uint256 validatorId
     ) internal returns (uint16) {
         // Cast the vote
-        votesByHashIdAndValidatorIdAndCurrencyType[_hashId][validatorId][
-            _currencyType
+        votesByHashIdAndValidatorIdAndCurrencyType[hashId][validatorId][
+            currencyType
         ] = true;
-        uint16 votes = votesByHashIdAndCurrencyType[_hashId][
-            _currencyType
-        ] += 1;
-        emit VoteToken(_hashId, validatorId, _currencyType, votes);
+        uint16 votes = votesByHashIdAndCurrencyType[hashId][currencyType] += 1;
+        emit VoteToken(hashId, validatorId, currencyType, votes);
 
         return votes;
     }
 
-    function vote(uint256 mintedBlockNumber, uint256 _hashId, uint256 _currencyType) external {
-        require(!_hasBeenMinted(_hashId, _currencyType), "Already minted");
-        uint256 validatorId = sfcLib.getValidatorID(msg.sender);
-        uint256 _validatorCount = validatorCount();
-        uint256 requiredVotes = _requiredNumOfValidators(_validatorCount);
+    function voteBatch(VotePayload[] calldata payload) external {
+        uint256 validatorId = sfc.getValidatorID(msg.sender);
+        uint256 validatorCount_ = validatorCount();
+        uint256 requiredVotes = _requiredNumOfValidators(validatorCount_);
 
-        require(validatorId > 0, "Not a validator");
-        require(
-            !_hasAlreadyVoted(_hashId, validatorId, _currencyType),
-            "Already voted"
-        );
-        require(
-            _shouldVote(mintedBlockNumber, validatorId, _hashId, _validatorCount),
-            "Not a selected validator"
-        );
-
-        uint16 votes = _vote(_hashId, _currencyType, validatorId);
-
-        // Mint the token if the vote threshold is reached
-        if (votes >= requiredVotes) {
-            _mintToken(_hashId, _currencyType);
+        if (validatorId < 1) {
+            revert NotAValidator();
         }
-    }
 
-    function voteBatch(Payload[] memory payload) external {
-        uint256 validatorId = sfcLib.getValidatorID(msg.sender);
-        uint256 _validatorCount = validatorCount();
-        uint256 requiredVotes = _requiredNumOfValidators(_validatorCount);
-        require(validatorId > 0, "Not a validator");
+        uint16[] memory cachedVersions = tokenRegistry.getTokenVersions();
 
         for (uint256 i = 0; i < payload.length; i++) {
             uint256 hashId = payload[i].hashId;
             uint256 currencyType = payload[i].currencyType;
             uint256 mintedBlockNumber = payload[i].mintedBlockNumber;
+            uint16 version = payload[i].version;
+
+            // Check the token version
+            // this protects against a race condition during a token upgrade
+            // if this fails the validator will need to re-verify each hash and resubmit
+            if (version > 0 && cachedVersions[currencyType - 1] != version) {
+                revert VersionMismatch();
+            }
 
             if (_hasBeenMinted(hashId, currencyType)) {
                 continue;
@@ -226,7 +247,14 @@ contract VoteManager is Initializable, OwnableUpgradeable {
                 continue;
             }
 
-            if (!_shouldVote(mintedBlockNumber, validatorId, hashId, _validatorCount)) {
+            if (
+                !_shouldVote(
+                    mintedBlockNumber,
+                    validatorId,
+                    hashId,
+                    validatorCount_
+                )
+            ) {
                 continue;
             }
 

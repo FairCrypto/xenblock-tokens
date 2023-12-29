@@ -6,9 +6,9 @@ import { main as tokenRegistry } from "./create-token-registry";
 
 require("dotenv").config();
 
-const BLOCK_STORAGE_ADDRESS = process.env.BLOCK_STORAGE_ADDRESS;
-const SFC_LIB_ADDRESS = process.env.SFC_LIB_ADDRESS;
-const PERCENTAGE = process.env.PERCENTAGE;
+const BLOCK_STORAGE_ADDRESS = process.env.BLOCK_STORAGE_ADDRESS || "";
+const SFC_LIB_ADDRESS = process.env.SFC_LIB_ADDRESS || "";
+const PERCENTAGE = process.env.PERCENTAGE || "";
 
 
 export async function main() {
@@ -27,24 +27,21 @@ export async function main() {
   const sb = await superBlock(vmAddr, trAddr);
 
   tr.registerToken(
-    "Xenium",
-    "XMN",
     10000000000000000000n,
-    await xnm.getAddress()
+    await xnm.getAddress(),
+    false
   );
 
   tr.registerToken(
-    "Xuni",
-    "XUNI",
     1000000000000000000n,
-    await xu.getAddress()
+    await xu.getAddress(),
+    true
   );
 
   tr.registerToken(
-    "SuperBlock",
-    "XBLK",
     1000000000000000000n,
-    await sb.getAddress()
+    await sb.getAddress(),
+    false
   );
 
   await vm.updateTokenRegistryAddress(trAddr);

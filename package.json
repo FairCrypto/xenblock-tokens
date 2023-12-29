@@ -4,26 +4,33 @@
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.2",
     "@openzeppelin/hardhat-upgrades": "^3.0.0",
-    "@openzeppelin/truffle-upgrades": "^1.21.0",
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.10.6",
+    "chai": "^4.3.10",
     "ethers": "^6.9.0",
     "hardhat": "^2.19.2",
+    "hardhat-gas-reporter": "^1.0.9",
     "prettier": "^3.1.1",
-    "prettier-plugin-solidity": "^1.2.0"
+    "prettier-plugin-solidity": "^1.2.0",
+    "ts-mocha": "^10.0.0",
+    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.7.0"
   },
   "dependencies": {
     "@openzeppelin/contracts-upgradeable": "^5.0.1",
-    "chai": "^4.3.10",
     "dotenv": "^16.3.1"
   },
   "name": "xenblock-tokens",
-  "description": "This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.",
+  "description": "",
   "version": "1.0.0",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "hardhat compile && hardhat typechain && hardhat test",
+    "compile": "hardhat compile && hardhat typechain"
   },
   "author": "",
   "license": "ISC"

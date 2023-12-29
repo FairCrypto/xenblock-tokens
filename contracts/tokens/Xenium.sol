@@ -3,8 +3,9 @@ pragma solidity ^0.8.20;
 
 import "../abstracts/VoterToken.sol";
 
-contract Xenium is VoterToken
-{
+/// @author The Faircrypto Team
+/// @title The Xenium Token
+contract Xenium is VoterToken {
     function initialize(
         address initialOwner,
         address initialVoteManager,
@@ -16,5 +17,7 @@ contract Xenium is VoterToken
         __ERC20Permit_init("Xenium");
         voteManagerAddress = initialVoteManager;
         tokenRegistryAddress = initialTokenRegistry;
+        amountPerHash = 10000000000000000000;
+        pattern = "XEN11";
     }
 }

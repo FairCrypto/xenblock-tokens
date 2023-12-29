@@ -2,7 +2,7 @@ import { ethers, network, upgrades } from "hardhat";
 
 require("dotenv").config();
 
-const TOKEN_REGISTRY_ADDRESS = process.env.TOKEN_REGISTRY_ADDRESS;
+const TOKEN_REGISTRY_ADDRESS = process.env.TOKEN_REGISTRY_ADDRESS || "";
 
 async function main() {
   const [deployerAccount] = await ethers.getSigners();
@@ -10,7 +10,9 @@ async function main() {
   const TokenRegistry = await ethers.getContractFactory("TokenRegistry");
   const tokenRegistry = await upgrades.upgradeProxy(
     TOKEN_REGISTRY_ADDRESS,
-    TokenRegistry,
+    TokenRegistry, {
+      call: "incrementVersion"
+    }
   );
   await tokenRegistry.waitForDeployment();
   const tokenRegistryAddress = await tokenRegistry.getAddress();

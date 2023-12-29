@@ -4,9 +4,9 @@ import { config } from "../hardhat.config";
 
 require("dotenv").config();
 
-const BLOCK_STORAGE_ADDRESS = process.env.BLOCK_STORAGE_ADDRESS;
-const SFC_LIB_ADDRESS = process.env.SFC_LIB_ADDRESS;
-const PERCENTAGE = process.env.PERCENTAGE;
+const BLOCK_STORAGE_ADDRESS = process.env.BLOCK_STORAGE_ADDRESS || "";
+const SFC_LIB_ADDRESS = process.env.SFC_LIB_ADDRESS || "";
+const PERCENTAGE = process.env.PERCENTAGE || "";
 
 export async function main(
   blockStorageAddress: string,

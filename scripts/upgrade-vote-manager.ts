@@ -3,7 +3,7 @@ import { config } from "../hardhat.config";
 
 require("dotenv").config();
 
-const VOTE_MANAGER_ADDRESS = process.env.VOTE_MANAGER_ADDRESS;
+const VOTE_MANAGER_ADDRESS = process.env.VOTE_MANAGER_ADDRESS || "";
 
 async function main() {
   const [deployerAccount] = await ethers.getSigners();
@@ -11,7 +11,9 @@ async function main() {
   const VoteManager = await ethers.getContractFactory("VoteManager");
   const voteManager = await upgrades.upgradeProxy(
     VOTE_MANAGER_ADDRESS,
-    VoteManager,
+    VoteManager, {
+      call: "incrementVersion"
+    }
   );
   await voteManager.waitForDeployment();
   const voteManagerAddress = await voteManager.getAddress();

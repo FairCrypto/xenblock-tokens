@@ -4,8 +4,8 @@ import { config } from "../hardhat.config";
 
 require("dotenv").config();
 
-const VOTE_MANAGER_ADDRESS = process.env.VOTE_MANAGER_ADDRESS;
-const TOKEN_REGISTRY_ADDRESS  = process.env.TOKEN_REGISTRY_ADDRESS;
+const VOTE_MANAGER_ADDRESS = process.env.VOTE_MANAGER_ADDRESS || "";
+const TOKEN_REGISTRY_ADDRESS  = process.env.TOKEN_REGISTRY_ADDRESS || "";
 
 export async function main(voteManagerAddress: string, tokenRegistryAddress: string): Promise<Contract> {
   const [deployerAccount] = await ethers.getSigners();
