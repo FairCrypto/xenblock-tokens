@@ -25,6 +25,16 @@ npx hardhat coverage
 REPORT_GAS=1 npx hardhat test
 ```
 
+## Docs
+
+See [docs](./docs/README.md) for more information.
+
+> Generate docs
+```shell
+npx hardhat markup
+```
+
+
 ## Deploy Contracts
 
 The initial deployment of the contracts is done using the `create-*` scripts. The `upgrade-*` scripts are used to upgrade the contracts.

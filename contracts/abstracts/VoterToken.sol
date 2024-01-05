@@ -7,6 +7,8 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
+/// @author The Faircrypto Team
+/// @dev The VoterToken abstract contract which all voter tokens must inherit from.
 abstract contract VoterToken is
     Initializable,
     ERC20Upgradeable,
@@ -14,10 +16,19 @@ abstract contract VoterToken is
     OwnableUpgradeable,
     ERC20PermitUpgradeable
 {
+    /// @dev The version of the token. This increments every time the token is upgraded or modified.
     uint16 public version;
+
+    /// @dev The address of the vote manager contract.
     address public voteManagerAddress;
+
+    /// @dev The address of the token registry contract.
     address public tokenRegistryAddress;
+
+    /// @dev The amount of tokens (WEI) minted per hash.
     uint256 public amountPerHash;
+
+    /// @dev The pattern used to validate the argon2 hash.
     string public pattern;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -110,9 +121,8 @@ abstract contract VoterToken is
     }
 
     /**
-     * @notice Validates `hash`
      * @dev Validates the argon2 hash by checking if it contains the patten from the state variable `pattern`.
-     * @param hash the argon2hash string to validate
+     * @param hash the argon2 hash string to validate. Only include the hash, not the salt or any other data.
      * @return status Returns true if the hash is valid, false otherwise
      * @return version Returns the version of the token.
      **/

@@ -2,11 +2,11 @@
 pragma solidity ^0.8.20;
 
 import "../abstracts/VoterToken.sol";
-import "hardhat/console.sol";
 
 /// @author The Faircrypto Team
-/// @title The Xuni Token
+/// @dev The Xuni Token
 contract Xuni is VoterToken {
+    /// @dev When true the timestamp check will be enforced.
     bool public enforceTimestampCheck;
 
     function initialize(
@@ -40,9 +40,9 @@ contract Xuni is VoterToken {
      * Validates `hash`
      * @dev Validates the argon2 hash by checking if it contains a pattern from the state variable `patterns`
      * and if the block timestamp is within 5 minutes of the hour.
-     * @param hash the argon2hash string to validate
+     * @param hash the argon2 hash string to validate. Only include the hash, not the salt or any other data.
      * @param minedTimestamp the timestamp of the block the hash was mined in. It can be used for additional validation.
-     * @return status Returns true if the hash is valid, false otherwise
+     * @return status Returns true if the hash is valid, false otherwise.
      * @return version Returns the version of the token.
      **/
     function validateArgon2Hash(

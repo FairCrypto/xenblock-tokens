@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "../abstracts/VoterToken.sol";
 
 /// @author The Faircrypto Team
-/// @title The Superblock Token
+/// @dev The Superblock Token
 contract SuperBlock is VoterToken {
     uint8 public constant CAPITAL_LETTERS = 50;
 
@@ -26,8 +26,8 @@ contract SuperBlock is VoterToken {
     /**
      * Validates `hash`
      * @dev Validates the argon2 hash by checking if it contains the string from the state variable `pattern` and at least 50 capital letters.
-     * @param hash the argon2hash string to validate
-     * @return status Returns true if the hash is valid, false otherwise
+     * @param hash the argon2 hash string to validate. Only include the hash, not the salt or any other data.
+     * @return status Returns true if the hash is valid, false otherwise.
      * @return version Returns the version of the token.
      **/
     function validateArgon2Hash(

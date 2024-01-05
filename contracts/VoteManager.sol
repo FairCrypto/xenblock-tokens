@@ -8,16 +8,27 @@ import "./TokenRegistry.sol";
 import "./interfaces/SFC.sol";
 import "./interfaces/BlockStorage.sol";
 import "./abstracts/VoterToken.sol";
-import "hardhat/console.sol";
 
 error VersionMismatch();
 error NotAValidator();
 
+/// @author The Faircrypto Team
+/// @dev The VoteManager contract which handles voting and minting of Xen Block tokens
 contract VoteManager is Initializable, OwnableUpgradeable {
+    /// @dev The SFC contract.
     SFC public sfc;
+
+    /// @dev The BlockStorage contract.
     BlockStorage public blockStorage;
+
+    /// @dev The TokenRegistry contract.
     TokenRegistry public tokenRegistry;
 
+    /// @dev The VotePayload struct.
+    /// @param hashId The hash id of the token.
+    /// @param currencyType The currency type of the token.
+    /// @param mintedBlockNumber The block number the token was minted on BlockStorage.
+    /// @param version The version of the token. Used to verify the token has not been upgraded since validation took place.
     struct VotePayload {
         uint256 hashId;
         uint256 currencyType;
@@ -25,27 +36,32 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         uint16 version;
     }
 
-    // The percentage of validators that must vote for a token to be minted
+    /// @dev The percentage of validators that must vote for a token to be minted
     uint8 public votePercentage;
 
-    // The percentage of extra votes asked for to cover any missing validator votes
+    /// @dev The percentage of extra votes asked for to cover any missing validator votes
     uint8 public voteBufferPercent;
 
+    /// @dev The mapping of hash id to currency type to votes.
     mapping(uint256 => mapping(uint256 => uint16))
         public votesByHashIdAndCurrencyType;
 
+    /// @dev The mapping of hash id to currency type to validator id to vote.
     mapping(uint256 => mapping(uint256 => mapping(uint256 => bool)))
         public votesByHashIdAndValidatorIdAndCurrencyType;
 
+    /// @dev The mapping of hash id to currency type to minted.
     mapping(uint256 => mapping(uint256 => bool))
         public mintedByHashIdAndCurrencyType;
 
+    /// @dev The MintToken event.
     event MintToken(
         uint256 indexed hashId,
         address indexed account,
         uint256 indexed currencyType
     );
 
+    /// @dev The VoteToken event.
     event VoteToken(
         uint256 indexed hashId,
         uint256 indexed validatorId,

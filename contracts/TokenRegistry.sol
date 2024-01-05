@@ -5,22 +5,37 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./abstracts/VoterToken.sol";
 
+/// @author The Faircrypto Team
+/// @dev The TokenRegistry contract. A registry of all voter tokens.
 contract TokenRegistry is Initializable, OwnableUpgradeable {
+    /// @dev The TokenConfig struct.
+    /// @param currencyType The currency type of the token.
+    /// @param token The VoterToken contract.
+    /// @param exclusive When true, only this token will be used for validation. All others will be ignored when this token is matched.
     struct TokenConfig {
         uint256 currencyType;
         VoterToken token;
         bool exclusive;
     }
 
+    /// @dev The FoundToken struct.
+    /// @param currencyType The currency type of the token.
+    /// @param version The version of the token.
     struct FoundToken {
         uint256 currencyType;
         uint16 version;
     }
 
+    /// @dev The token id counter. Used to assign the currency type. Starts at 1.
     uint256 public tokenIdCounter;
+
+    /// @dev The mapping of token id to TokenConfig.
     mapping(uint256 => TokenConfig) public tokensById;
+
+    /// @dev The mapping of token symbol to token id.
     mapping(string => uint256) public tokenIdBySymbol;
 
+    /// @dev The TokensUpdated event.
     event TokensUpdated();
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -136,7 +151,7 @@ contract TokenRegistry is Initializable, OwnableUpgradeable {
     /**
      * @dev Runs the validateArgon2Hash function on all tokens in the registry and returns a list of tokens that
       match the given hash with the token version to prevent race conditions during upgrades.
-     * @param hash the agon2 hash to validate
+     * @param hash the argon2 hash string to validate. Only include the hash, not the salt or any other data.
      * @return Returns an array of currency types that match the given hash.
      */
     function findTokensFromArgon2Hash(

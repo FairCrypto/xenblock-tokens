@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "../abstracts/VoterToken.sol";
 
 /// @author The Faircrypto Team
-/// @title The Xenium Token
+/// @dev The Xenium Token
 contract Xenium is VoterToken {
     function initialize(
         address initialOwner,
