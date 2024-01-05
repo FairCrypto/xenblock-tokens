@@ -32,6 +32,7 @@
     "test": "hardhat compile && hardhat typechain && hardhat test",
     "compile": "hardhat compile && hardhat typechain",
     "format": "prettier --write --plugin=prettier-plugin-solidity 'contracts/**/*.sol' && prettier --write 'test/**/*.ts'",
+    "lint": "prettier --check --plugin=prettier-plugin-solidity 'contracts/**/*.sol' && prettier --check 'test/**/*.ts'",
     "docs": "hardhat markup"
   },
   "author": "",
