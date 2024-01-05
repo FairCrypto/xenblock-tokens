@@ -259,7 +259,6 @@ contract VoteManager is Initializable, OwnableUpgradeable {
     function voteBatch(VotePayload[] calldata payload) external {
         uint256 validatorId = sfc.getValidatorID(msg.sender);
         uint256 validatorCount_ = validatorCount();
-        uint256 requiredVotes = _requiredNumOfValidators(validatorCount_);
 
         if (validatorId < 1) {
             revert NotAValidator();
@@ -302,6 +301,7 @@ contract VoteManager is Initializable, OwnableUpgradeable {
             uint16 votes = _vote(hashId, currencyType, validatorId);
 
             // Mint the token if the vote threshold is reached
+            uint256 requiredVotes = _requiredNumOfVotes(validatorCount_);
             if (votes >= requiredVotes) {
                 _mintToken(hashId, currencyType);
             }
