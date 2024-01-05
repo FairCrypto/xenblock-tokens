@@ -1,7 +1,7 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import { DeployedContracts, deployTokenFixture } from "./_fixtures";
-import {ethers, upgrades} from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { TokenRegistry } from "../typechain-types";
 
 describe("Xenium", function () {
@@ -54,16 +54,18 @@ describe("Xenium", function () {
     await xenium.updatePattern("XEN1111");
     expect(await xenium.pattern()).to.equal("XEN1111");
     expect(await xenium.version()).to.equal(2);
-    await expect(xenium.updatePattern("")).to.revertedWith("Pattern must be between 3 and 100 characters.")
-    await expect(xenium.updatePattern("1")).to.revertedWith("Pattern must be between 3 and 100 characters.")
-    await expect(xenium.updatePattern("f3")).to.revertedWith("Pattern must be between 3 and 100 characters.")
-    await expect(xenium.updatePattern("ajshdkasdhkasjhdkajshdaskjhdkasjhskdhaskjdhaksjdhkksjdhflksdjhfdskjhfdskhfsdkfhksdjhfsdkhfsdklfhdkshfksdfhksashasdasdasdasdasdsadd")).to.revertedWith("Pattern must be between 3 and 100 characters.")
-  })
+    await expect(xenium.updatePattern("")).to.revertedWith("Pattern must be between 3 and 100 characters.");
+    await expect(xenium.updatePattern("1")).to.revertedWith("Pattern must be between 3 and 100 characters.");
+    await expect(xenium.updatePattern("f3")).to.revertedWith("Pattern must be between 3 and 100 characters.");
+    await expect(xenium.updatePattern("ajshdkasdhkasjhdkajshdaskjhdkasjhskdhaskjdhaksjdhkksjdhflksdjhfdskjhfdskhfsdkfhksdjhfsdkhfsdklfhdkshfksdfhksashasdasdasdasdasdsadd")).to.revertedWith(
+      "Pattern must be between 3 and 100 characters.",
+    );
+  });
 
   it("should not allow non-owner to update the pattern", async () => {
     const { xenium, owner, nonValidator1 } = await loadFixture<DeployedContracts>(deployTokenFixture);
     await expect(xenium.connect(nonValidator1).updatePattern("XEN1111")).to.be.revertedWithCustomError(xenium, "OwnableUnauthorizedAccount");
-  })
+  });
 
   it("should update amountPerHash", async () => {
     const { xenium, owner } = await loadFixture<DeployedContracts>(deployTokenFixture);
@@ -76,10 +78,10 @@ describe("Xenium", function () {
     expect(await xenium.amountPerHash()).to.equal(1);
 
     await expect(xenium.updateAmountPerHash(0)).to.revertedWith("Amount per hash must be greater than 0.");
-  })
+  });
 
   it("should not allow non-owner to update amountPerHash", async () => {
     const { xenium, owner, nonValidator1 } = await loadFixture<DeployedContracts>(deployTokenFixture);
     await expect(xenium.connect(nonValidator1).updateAmountPerHash(ethers.parseEther("100"))).to.be.revertedWithCustomError(xenium, "OwnableUnauthorizedAccount");
-  })
+  });
 });

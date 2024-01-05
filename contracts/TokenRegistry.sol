@@ -97,7 +97,7 @@ contract TokenRegistry is Initializable, OwnableUpgradeable {
     function getTokenConfigs() public view returns (TokenConfig[] memory) {
         TokenConfig[] memory tokens = new TokenConfig[](tokenIdCounter);
         for (uint256 i = 0; i < tokenIdCounter; i++) {
-            tokens[i] = tokensById[i+1];
+            tokens[i] = tokensById[i + 1];
         }
         return tokens;
     }
@@ -122,13 +122,13 @@ contract TokenRegistry is Initializable, OwnableUpgradeable {
     }
 
     /**
-    * @dev Return a list of token versions
-    * @return VoterToken
-    */
+     * @dev Return a list of token versions
+     * @return VoterToken
+     */
     function getTokenVersions() public view returns (uint16[] memory) {
         uint16[] memory versions = new uint16[](tokenIdCounter);
         for (uint256 i = 0; i < tokenIdCounter; i++) {
-            versions[i] = tokensById[i+1].token.version();
+            versions[i] = tokensById[i + 1].token.version();
         }
         return versions;
     }

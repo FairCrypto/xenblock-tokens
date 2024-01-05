@@ -277,7 +277,8 @@ describe("VoteManager", function () {
         currencyType: 1,
         mintedBlockNumber: 1,
         version: 2,
-      }];
+      },
+    ];
 
     await expect(voteManager.connect(validator1).voteBatch(votes)).to.be.revertedWithCustomError(voteManager, "VersionMismatch");
   });
