@@ -8,4 +8,3 @@ runs:
       with:
         eslint: false
         prettier: true
-        prettier_dir: src
