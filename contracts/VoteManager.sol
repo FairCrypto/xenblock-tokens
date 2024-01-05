@@ -72,22 +72,39 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         voteBufferPercent = initialVoteBufferPercent;
     }
 
+    /**
+    * @dev Updates the block storage address. May only be called by the owner.
+    * @param blockStorageAddress the new block storage address
+    */
     function updateBlockStorageAddress(
         address blockStorageAddress
     ) external onlyOwner {
         blockStorage = BlockStorage(blockStorageAddress);
     }
 
+    /**
+    * @dev Updates the SFC address. May only be called by the owner.
+    * @param sfcAddress the new SFC address
+    */
     function updateSfcAddress(address sfcAddress) external onlyOwner {
         sfc = SFC(sfcAddress);
     }
 
+    /**
+    * @dev Updates the token registry address. May only be called by the owner.
+    * @param tokenRegistryAddress_ the new token registry address
+    */
     function updateTokenRegistryAddress(
         address tokenRegistryAddress_
     ) external onlyOwner {
         tokenRegistry = TokenRegistry(tokenRegistryAddress_);
     }
 
+    /**
+    * @dev Updates the vote percentage. This is the percentage of validators that must vote per hash.
+    * May only be called by the owner.
+    * @param votePercentage_ the new vote percentage
+    */
     function updateVotePercentage(uint8 votePercentage_) external onlyOwner {
         require(
             votePercentage_ >= 1 && votePercentage_ <= 100,
@@ -96,6 +113,12 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         votePercentage = votePercentage_;
     }
 
+    /**
+    * @dev Updates the vote buffer percentage. This is the percentage of extra votes asked for to cover any missing validator votes.
+    * For example, if the vote percentage is 50% and the vote buffer percentage is 50% then 75% of validators must vote for a token to be minted.
+    * May only be called by the owner.
+    * @param voteBufferPercent_ the new vote buffer percentage
+    */
     function updateVoteBufferPercentage(
         uint8 voteBufferPercent_
     ) external onlyOwner {
@@ -106,11 +129,18 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         voteBufferPercent = voteBufferPercent_;
     }
 
+    /**
+    * @dev Returns the requested number of validators to vote.
+    * This number includes the buffer percentage.
+    */
     function requiredNumOfValidators() public view returns (uint256) {
         uint256 validatorCount_ = validatorCount();
         return _requiredNumOfValidators(validatorCount_);
     }
 
+    /**
+    * @dev Returns the required number of votes for a token to be minted.
+    */
     function requiredNumOfVotes() public view returns (uint256) {
         uint256 validatorCount_ = validatorCount();
         return _requiredNumOfVotes(validatorCount_);
@@ -136,9 +166,13 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         return requiredVotes;
     }
 
+    /**
+    * @dev Returns the number of validators in the current epoch.
+    */
     function validatorCount() public view returns (uint256) {
         // TODO: add a more efficient validator count to the SFC contract
         // for now we need to count the validators in the current epoch
+        // There may be an issue here if the epoch doesn't match the BlockStorage minted block number.
         uint256 epoch = sfc.currentSealedEpoch();
         return sfc.getEpochValidatorIDs(epoch).length;
     }
@@ -175,6 +209,9 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         emit MintToken(hashId, account, currencyType);
     }
 
+    /**
+    * @dev Returns true if the validator should vote for the given hash.
+    */
     function shouldVote(
         uint256 mintedBlockNumber,
         uint256 validatorId,
@@ -215,6 +252,10 @@ contract VoteManager is Initializable, OwnableUpgradeable {
         return votes;
     }
 
+    /**
+    * @dev Casts a batch of votes for a list of hashes. May only be called by a validator.
+    * @param payload An array of votes to cast
+    */
     function voteBatch(VotePayload[] calldata payload) external {
         uint256 validatorId = sfc.getValidatorID(msg.sender);
         uint256 validatorCount_ = validatorCount();

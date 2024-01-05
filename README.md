@@ -9,6 +9,22 @@ npm install
 export PRIVATE_KEY=<private key>
 ```
 
+## Test
+
+```shell
+npx hardhat test
+```
+
+> with coverage report
+```shell
+npx hardhat coverage
+```
+
+> with gas report
+```shell
+REPORT_GAS=1 npx hardhat test
+```
+
 ## Deploy Contracts
 
 The initial deployment of the contracts is done using the `create-*` scripts. The `upgrade-*` scripts are used to upgrade the contracts.
