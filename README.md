@@ -27,7 +27,7 @@ REPORT_GAS=1 npx hardhat test
 
 ## Docs
 
-See [docs](./docs/README.md) for more information.
+See [docs](./docs) for more information.
 
 > Generate docs
 ```shell
