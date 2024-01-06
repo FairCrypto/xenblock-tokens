@@ -12,7 +12,7 @@ const PERCENTAGE = process.env.PERCENTAGE || "";
 const BUFFER_PERCENTAGE = process.env.BUFFER_PERCENTAGE || "20";
 
 console.log("BLOCK_STORAGE_ADDRESS:", BLOCK_STORAGE_ADDRESS);
-console.log("SFC_LIB_ADDRESS:", SFC_LIB_ADDRESS)
+console.log("SFC_LIB_ADDRESS:", SFC_LIB_ADDRESS);
 console.log("PERCENTAGE:", PERCENTAGE);
 console.log("BUFFER_PERCENTAGE:", BUFFER_PERCENTAGE);
 
@@ -29,7 +29,7 @@ export async function main() {
     BLOCK_STORAGE_ADDRESS,
     SFC_LIB_ADDRESS,
     PERCENTAGE,
-    BUFFER_PERCENTAGE
+    BUFFER_PERCENTAGE,
   );
   const vmAddr = await vm.getAddress();
 

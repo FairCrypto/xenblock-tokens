@@ -31,7 +31,7 @@ export async function main(
     sfcLibAddress,
     blockStorageAddress,
     percentage,
-    bufferPercentage
+    bufferPercentage,
   ]);
   await voteManager.waitForDeployment();
   const voteManagerAddress = await voteManager.getAddress();
@@ -43,7 +43,12 @@ export async function main(
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 if (require.main === module) {
-  main(BLOCK_STORAGE_ADDRESS, SFC_LIB_ADDRESS, PERCENTAGE, BUFFER_PERCENTAGE).catch((error) => {
+  main(
+    BLOCK_STORAGE_ADDRESS,
+    SFC_LIB_ADDRESS,
+    PERCENTAGE,
+    BUFFER_PERCENTAGE,
+  ).catch((error) => {
     console.error(error);
     process.exitCode = 1;
   });
