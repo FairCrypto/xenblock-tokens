@@ -10,7 +10,7 @@ async function main() {
 
   const Xenium = await ethers.getContractFactory("Xenium");
   const xenium = await upgrades.upgradeProxy(XENIUM_ADDRESS, Xenium, {
-    call: "incrementVersion"
+    call: "incrementVersion",
   });
   await xenium.waitForDeployment();
   const xeniumAddress = await xenium.getAddress();

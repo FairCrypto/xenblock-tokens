@@ -10,7 +10,6 @@ const BLOCK_STORAGE_ADDRESS = process.env.BLOCK_STORAGE_ADDRESS || "";
 const SFC_LIB_ADDRESS = process.env.SFC_LIB_ADDRESS || "";
 const PERCENTAGE = process.env.PERCENTAGE || "";
 
-
 export async function main() {
   const vm = await voteManager(
     BLOCK_STORAGE_ADDRESS,
@@ -26,23 +25,11 @@ export async function main() {
   const xu = await xuni(vmAddr, trAddr);
   const sb = await superBlock(vmAddr, trAddr);
 
-  tr.registerToken(
-    10000000000000000000n,
-    await xnm.getAddress(),
-    false
-  );
+  tr.registerToken(10000000000000000000n, await xnm.getAddress(), false);
 
-  tr.registerToken(
-    1000000000000000000n,
-    await xu.getAddress(),
-    true
-  );
+  tr.registerToken(1000000000000000000n, await xu.getAddress(), true);
 
-  tr.registerToken(
-    1000000000000000000n,
-    await sb.getAddress(),
-    false
-  );
+  tr.registerToken(1000000000000000000n, await sb.getAddress(), false);
 
   await vm.updateTokenRegistryAddress(trAddr);
 

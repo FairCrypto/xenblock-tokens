@@ -4,17 +4,20 @@ import { Contract } from "ethers";
 
 require("dotenv").config();
 
-const VOTE_MANAGER_ADDRESS = process.env.VOTE_MANAGER_ADDRESS;
-const TOKEN_REGISTRY_ADDRESS  = process.env.TOKEN_REGISTRY_ADDRESS;
+const VOTE_MANAGER_ADDRESS = process.env.VOTE_MANAGER_ADDRESS || "";
+const TOKEN_REGISTRY_ADDRESS = process.env.TOKEN_REGISTRY_ADDRESS || "";
 
-export async function main(voteManagerAddress: string, tokenRegistryAddress: string): Promise<Contract> {
+export async function main(
+  voteManagerAddress: string,
+  tokenRegistryAddress: string,
+): Promise<Contract> {
   const [deployerAccount] = await ethers.getSigners();
 
   const Xuni = await ethers.getContractFactory("Xuni");
   const xuni = await upgrades.deployProxy(Xuni, [
     deployerAccount.address,
     voteManagerAddress,
-    tokenRegistryAddress
+    tokenRegistryAddress,
   ]);
   await xuni.waitForDeployment();
   const xuniAddress = await xuni.getAddress();

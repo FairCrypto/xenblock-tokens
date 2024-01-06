@@ -4,17 +4,20 @@ import { config } from "../hardhat.config";
 
 require("dotenv").config();
 
-const VOTE_MANAGER_ADDRESS = process.env.VOTE_MANAGER_ADDRESS;
-const TOKEN_REGISTRY_ADDRESS  = process.env.TOKEN_REGISTRY_ADDRESS;
+const VOTE_MANAGER_ADDRESS = process.env.VOTE_MANAGER_ADDRESS || "";
+const TOKEN_REGISTRY_ADDRESS = process.env.TOKEN_REGISTRY_ADDRESS || "";
 
-export async function main(voteManagerAddress: string, tokenRegistryAddress: string): Promise<Contract> {
+export async function main(
+  voteManagerAddress: string,
+  tokenRegistryAddress: string,
+): Promise<Contract> {
   const [deployerAccount] = await ethers.getSigners();
 
   const Xenium = await ethers.getContractFactory("Xenium");
   const xenium = await upgrades.deployProxy(Xenium, [
     deployerAccount.address,
     voteManagerAddress,
-    tokenRegistryAddress
+    tokenRegistryAddress,
   ]);
   await xenium.waitForDeployment();
   const xeniumAddress = await xenium.getAddress();
