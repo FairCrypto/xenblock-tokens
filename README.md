@@ -16,13 +16,29 @@ npx hardhat test
 ```
 
 > with coverage report
+
 ```shell
 npx hardhat coverage
 ```
 
 > with gas report
+
 ```shell
 REPORT_GAS=1 npx hardhat test
+```
+
+## Code Style
+
+> Check
+
+```shell
+npm run lint
+```
+
+> Fix
+
+```shell
+npm run format
 ```
 
 ## Docs
@@ -30,10 +46,10 @@ REPORT_GAS=1 npx hardhat test
 See [docs](./docs) for more information.
 
 > Generate docs
+
 ```shell
 npx hardhat markup
 ```
-
 
 ## Deploy Contracts
 

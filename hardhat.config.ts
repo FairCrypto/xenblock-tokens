@@ -3,8 +3,8 @@ import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-verify";
 import "@openzeppelin/hardhat-upgrades";
 import "tsconfig-paths/register";
-import "hardhat-gas-reporter"
-import "@solarity/hardhat-markup"
+import "hardhat-gas-reporter";
+import "@solarity/hardhat-markup";
 
 const x1Accounts = [];
 if (process.env.PRIVATE_KEY) {
@@ -46,7 +46,7 @@ export const config: HardhatUserConfig = {
     ],
   },
   gasReporter: {
-    enabled: !!(process.env.REPORT_GAS)
+    enabled: !!process.env.REPORT_GAS,
   },
 
   markup: {

@@ -11,9 +11,10 @@ async function main() {
   const SuperBlock = await ethers.getContractFactory("SuperBlock");
   const superBlock = await upgrades.upgradeProxy(
     SUPER_BLOCK_ADDRESS,
-    SuperBlock, {
-      call: "incrementVersion"
-    }
+    SuperBlock,
+    {
+      call: "incrementVersion",
+    },
   );
   await superBlock.waitForDeployment();
   const superBlockAddress = await superBlock.getAddress();

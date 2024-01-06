@@ -10,9 +10,10 @@ async function main() {
   const TokenRegistry = await ethers.getContractFactory("TokenRegistry");
   const tokenRegistry = await upgrades.upgradeProxy(
     TOKEN_REGISTRY_ADDRESS,
-    TokenRegistry, {
-      call: "incrementVersion"
-    }
+    TokenRegistry,
+    {
+      call: "incrementVersion",
+    },
   );
   await tokenRegistry.waitForDeployment();
   const tokenRegistryAddress = await tokenRegistry.getAddress();

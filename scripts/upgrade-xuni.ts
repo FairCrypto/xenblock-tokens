@@ -10,7 +10,7 @@ async function main() {
 
   const Xuni = await ethers.getContractFactory("Xuni");
   const xuni = await upgrades.upgradeProxy(XUNI_ADDRESS, Xuni, {
-    call: "incrementVersion"
+    call: "incrementVersion",
   });
   await xuni.waitForDeployment();
   const xuniAddress = await xuni.getAddress();
