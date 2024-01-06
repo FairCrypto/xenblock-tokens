@@ -58,6 +58,11 @@ The initial deployment of the contracts is done using the `create-*` scripts. Th
 For convenience, the `create-all` script will deploy and verify all contracts.
 
 ```shell
+# add BLOCK_STORAGE_ADDRESS and SFC_LIB_ADDRESS to .env
+echo "BLOCK_STORAGE_ADDRESS=0xf7E0CF7453ac619fD64b3D46D7De3638510F15eA" >> .env
+echo "SFC_LIB_ADDRESS=0xFC00FACE00000000000000000000000000000000" >> .env
+source .env
+
 npx hardhat run scripts/create-all.ts --network x1-testnet
 
 # add the env variables to .env

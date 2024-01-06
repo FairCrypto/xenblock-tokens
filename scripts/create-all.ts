@@ -9,12 +9,27 @@ require("dotenv").config();
 const BLOCK_STORAGE_ADDRESS = process.env.BLOCK_STORAGE_ADDRESS || "";
 const SFC_LIB_ADDRESS = process.env.SFC_LIB_ADDRESS || "";
 const PERCENTAGE = process.env.PERCENTAGE || "";
+const BUFFER_PERCENTAGE = process.env.BUFFER_PERCENTAGE || "20";
+
+console.log("BLOCK_STORAGE_ADDRESS:", BLOCK_STORAGE_ADDRESS);
+console.log("SFC_LIB_ADDRESS:", SFC_LIB_ADDRESS)
+console.log("PERCENTAGE:", PERCENTAGE);
+console.log("BUFFER_PERCENTAGE:", BUFFER_PERCENTAGE);
+
+if (!BLOCK_STORAGE_ADDRESS) {
+  throw new Error("BLOCK_STORAGE_ADDRESS is not set");
+}
+
+if (!SFC_LIB_ADDRESS) {
+  throw new Error("SFC_LIB_ADDRESS is not set");
+}
 
 export async function main() {
   const vm = await voteManager(
     BLOCK_STORAGE_ADDRESS,
     SFC_LIB_ADDRESS,
     PERCENTAGE,
+    BUFFER_PERCENTAGE
   );
   const vmAddr = await vm.getAddress();
 
@@ -25,11 +40,9 @@ export async function main() {
   const xu = await xuni(vmAddr, trAddr);
   const sb = await superBlock(vmAddr, trAddr);
 
-  tr.registerToken(10000000000000000000n, await xnm.getAddress(), false);
-
-  tr.registerToken(1000000000000000000n, await xu.getAddress(), true);
-
-  tr.registerToken(1000000000000000000n, await sb.getAddress(), false);
+  await tr.registerToken(await xnm.getAddress(), false);
+  await tr.registerToken(await xu.getAddress(), true);
+  await tr.registerToken(await sb.getAddress(), false);
 
   await vm.updateTokenRegistryAddress(trAddr);
 

@@ -26,7 +26,7 @@ export const config: HardhatUserConfig = {
     "x1-testnet": {
       url: "https://x1-testnet.xen.network",
       accounts: x1Accounts,
-      gasMultiplier: 1.5,
+      gasMultiplier: 2,
     },
   },
   etherscan: {
