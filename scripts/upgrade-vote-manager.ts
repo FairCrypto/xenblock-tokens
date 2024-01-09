@@ -12,9 +12,6 @@ async function main() {
   const voteManager = await upgrades.upgradeProxy(
     VOTE_MANAGER_ADDRESS,
     VoteManager,
-    {
-      call: "incrementVersion",
-    },
   );
   await voteManager.waitForDeployment();
   const voteManagerAddress = await voteManager.getAddress();

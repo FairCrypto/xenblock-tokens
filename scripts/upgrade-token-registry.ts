@@ -11,9 +11,6 @@ async function main() {
   const tokenRegistry = await upgrades.upgradeProxy(
     TOKEN_REGISTRY_ADDRESS,
     TokenRegistry,
-    {
-      call: "incrementVersion",
-    },
   );
   await tokenRegistry.waitForDeployment();
   const tokenRegistryAddress = await tokenRegistry.getAddress();
