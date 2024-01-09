@@ -304,4 +304,26 @@ describe("VoteManager", function () {
       expect(await voteManager.mintedByHashIdAndCurrencyType(i + 1, 1)).to.be.true;
     }
   });
+
+  it("should set checkpoint block number", async () => {
+    const { voteManager, validator1 } = await loadFixture<DeployedContracts>(deployTokenFixture);
+
+    await voteManager.connect(validator1).updateCheckpoint(100n);
+    expect(await voteManager.blockCheckpointByValidatorId(1)).to.equal(100n);
+
+    await voteManager.connect(validator1).updateCheckpoint(101n);
+    expect(await voteManager.blockCheckpointByValidatorId(1)).to.equal(101n);
+  });
+
+  it("should not set checkpoint block number with non-validator", async () => {
+    const { voteManager, nonValidator1 } = await loadFixture<DeployedContracts>(deployTokenFixture);
+
+    await expect(voteManager.connect(nonValidator1).updateCheckpoint(100n)).to.be.revertedWithCustomError(voteManager, "NotAValidator");
+  });
+
+  it("should not set checkpoint block number to 0", async () => {
+    const { voteManager, validator1 } = await loadFixture<DeployedContracts>(deployTokenFixture);
+
+    await expect(voteManager.connect(validator1).updateCheckpoint(0n)).to.be.revertedWith("Block number must be greater than 0.");
+  });
 });

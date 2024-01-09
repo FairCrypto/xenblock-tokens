@@ -54,6 +54,9 @@ contract VoteManager is Initializable, OwnableUpgradeable {
     mapping(uint256 => mapping(uint256 => bool))
         public mintedByHashIdAndCurrencyType;
 
+    /// @dev The mapping of validator id to block number checkpoint. Used for validators to pick up where they left off.
+    mapping(uint256 => uint256) public blockCheckpointByValidatorId;
+
     /// @dev The MintToken event.
     event MintToken(
         uint256 indexed hashId,
@@ -322,5 +325,20 @@ contract VoteManager is Initializable, OwnableUpgradeable {
                 _mintToken(hashId, currencyType);
             }
         }
+    }
+
+    /**
+     * @dev Update the validator checkpoint
+     * @param blockNumber The block number to update the checkpoint to
+     */
+    function updateCheckpoint(uint256 blockNumber) external {
+        uint256 validatorId = sfc.getValidatorID(msg.sender);
+        if (validatorId < 1) {
+            revert NotAValidator();
+        }
+
+        require(blockNumber > 0, "Block number must be greater than 0.");
+
+        blockCheckpointByValidatorId[validatorId] = blockNumber;
     }
 }
