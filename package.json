@@ -4,7 +4,7 @@
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.3",
     "@openzeppelin/hardhat-upgrades": "^3.0.1",
-    "@solarity/hardhat-markup": "^1.0.4",
+    "@solarity/hardhat-markup": "^1.0.5",
     "@types/chai": "^4.3.11",
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.10.6",
