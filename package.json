@@ -7,7 +7,7 @@
     "@solarity/hardhat-markup": "^1.0.4",
     "@types/chai": "^4.3.11",
     "@types/mocha": "^10.0.6",
-    "@types/node": "^20.10.6",
+    "@types/node": "^20.11.14",
     "chai": "^4.4.0",
     "ethers": "^6.9.2",
     "hardhat": "^2.19.4",
